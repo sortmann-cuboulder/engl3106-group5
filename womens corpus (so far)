@@ -86,7 +86,7 @@ WC20 <- WC20[93:16515, ] # The Female Quixote by Charlotte Lennox
 
 WC21 <- gutenberg_download(38703, meta_fields = c("title", "author"),
                            mirror = "http://mirrors.xmission.com/gutenberg/")
-WC21 <- WC21[37:13797, ]
+WC21 <- WC21[37:13797, ] # The Black Moth by Georgette Hayer
 
 WomensCorpus <- rbind(WC01, WC02, WC03, WC04, WC05, WC06, WC07, WC08, WC09, WC10,
                       WC11, WC12, WC13, WC14, WC15, WC16, WC17, WC18, WC19, WC20, WC21) %>%
