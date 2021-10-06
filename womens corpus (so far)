@@ -2,10 +2,11 @@ library(gutenbergr)
 library(tidyverse)
 library(tidytext)
 library(textdata)
+library(ggplot2)
 data("stop_words")
 
 WC01 <- gutenberg_download(144, meta_fields = c("title", "author"),
-                            mirror = "http://mirrors.xmission.com/gutenberg/")
+                           mirror = "http://mirrors.xmission.com/gutenberg/")
 WC01 <- WC01[42:14948, ] # The Voyage Out by Virginia Woolf
 
 WC02 <- gutenberg_download(145, meta_fields = c("title", "author"),
@@ -89,6 +90,10 @@ WC21 <- gutenberg_download(38703, meta_fields = c("title", "author"),
 WC21 <- WC21[37:13797, ] # The Black Moth by Georgette Hayer
 
 WomensCorpus <- rbind(WC01, WC02, WC03, WC04, WC05, WC06, WC07, WC08, WC09, WC10,
-                      WC11, WC12, WC13, WC14, WC15, WC16, WC17, WC18, WC19, WC20, WC21) %>%
+                      WC11, WC12, WC13, WC14, WC15, WC16, WC17, WC18, WC19, WC20,
+                      WC21) %>%
   unnest_tokens(word,text)%>%
   anti_join(stop_words)
+
+WomensCorpusCount <- WomensCorpus %>%
+  count(word, sort=TRUE)
