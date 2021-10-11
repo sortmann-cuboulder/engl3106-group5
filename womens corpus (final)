@@ -89,40 +89,100 @@ WomensCorpus <- rbind(WC01, WC02, WC03, WC04, WC05, WC06, WC07, WC08, WC09, WC10
   unnest_tokens(word,text)%>%
   anti_join(stop_words)
 
+### PROJECT QUESTIONS
+
 ## A: TOP 20 NON-STOP WORDS
 WomensCorpusCount <- WomensCorpus %>%
   count(word, sort=TRUE)
-WomensCorpusCount[1:20,]%>%
+WomensCorpusCount%>%
+  mutate(word = reorder(word, n))%>%
+  head(20)%>%
+  ggplot()+
+  aes(word,n)+
+  geom_col()+
+  coord_flip()+
+  xlab(NULL)+
+  ylab("Number of Occurrences")+
+  ggtitle("Most Common Words in 'Love Stories by Women' Corpus")
+# ANSWER: (descending order) time, miss, sir, lady, day,
+# eyes, mind, house, love, molly, dear, life, hand, looked,
+# heart, told, people, home, heard, father
+
+### BING LEXICON - QUESTIONS B-D
+BING <- get_sentiments("bing")
+WomensCorpusBING <- WomensCorpus %>%
+  inner_join(BING)%>%
+  count(title, word, sentiment) %>%
+  spread(sentiment, n) %>%
+  mutate(sentiment = positive - negative)
+
+## B: 10 MOST NEGATIVE NOVELS
+WomensCorpusBING %>%
+  mutate(title = reorder(title, sentiment))%>%
+  arrange(sentiment)%>%
+  head(10)%>%
+  ggplot()+
+  aes(sentiment, title)+
+  geom_col()+
+  xlab("Net Novel Negativity")+
+  ylab(NULL)+
+  ggtitle("Most Negative Love Stories by Women")
+# ANSWER: (descending order) wuthering heights, middlemarch, jane eyre,
+# evelina, tenant of wildfell hall, the voyage out, wives and daughters,
+# the black moth, the female quixote, summer
+# NOTE: THIS WILL APPEAR IN REVERSE ORDER ON GRAPH
+
+## C: OVERALL SENTIMENT
+sum(WomensCorpusBING$sentiment)
+# ANSWER: -18349
+
+## D: TOP 15 POSITIVE / 15 NEGATIVE WORDS OVERALL
+# positive
+WCBpos <- WomensCorpusCount%>%
+  inner_join(BING)%>%
+  arrange(sentiment)%>%
+  filter(sentiment=="positive")%>%
+  head(15)
+WCBpos%>%
   mutate(word = reorder(word, n)) %>%
   ggplot()+
   aes(word,n)+
   geom_col()+
   coord_flip()+
   xlab(NULL)+
-  ylab("No. of Occurrences")+
-  ggtitle("Most Common Words in 'Love Stories by Women' Corpus")
+  ylab("Occurrences")+
+  ggtitle("Top Positive Words, Womens Corpus")
+# ANSWER: (descending order) love, happy, pleasure, glad, pretty, fine, ready,
+# smile, happiness, strong, master, silent, affection, pleased, quiet
 
-### BING LEXICON - QUESTIONS B-D
-BING <- get_sentiments("bing")
-WomensCorpusBING <- WomensCorpus %>%
-  inner_join(BING)%>%
-  count(index = title, sentiment) %>%
-  spread(sentiment, n) %>%
-  mutate(sentiment = positive - negative)
-
-## B: 10 MOST NEGATIVE NOVELS
-# COME BACK / GET HELP FOR GRAPH!
-
-## C: OVERALL SENTIMENT
-sum(WomensCorpusBING$sentiment)
-
-## D: 
-# COME BACK AND FIGURE ME OUT OR GET HELP!!!!!!1!!!
+# negative
+# COMPLICATION: the word 'miss' is likely used more frequently in these novels
+# to address an unmarried woman, as opposed to longing for an absent person.
+# to that end, this code reflects a version where 'miss' has been removed.
+BINGmiss <- BING%>%
+  filter(word!="miss")
+WCBneg <- WomensCorpusCount%>%
+  inner_join(BINGmiss)%>%
+  arrange(sentiment)%>%
+  filter(sentiment=="negative")%>%
+  head(15)
+WCBneg%>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot()+
+  aes(word,n)+
+  geom_col()+
+  coord_flip()+
+  xlab(NULL)+
+  ylab("Occurrences")+
+  ggtitle("Top Negative Words, Women's Corpus")
+# ANSWER: (descending order) poor, doubt, fear, afraid, death, cold, bad,
+# trouble, strange, dark, hard, lost, fell, wrong, impossible
 
 ### NRC LEXICON - QUESTIONS E&F
 NRC <- lexicon_nrc()
 
 ## E: TOP 15 JOY & ANGER WORDS
+# joy
 NRCjoy <- NRC %>%
   filter(sentiment == "joy")
 WCjoy <- WomensCorpus%>%
@@ -138,7 +198,10 @@ WCjoy%>%
   xlab(NULL)+
   ylab("No. of Occurrences")+
   ggtitle("Top 15 Joyful Words, Womens Corpus")
+# ANSWER: (descending order) love, mother, found, hope, friend, happy,
+# child, feeling, money, daughter, glad, pretty, true, deal, marriage
 
+# anger
 NRCanger <- NRC %>%  
   filter(sentiment == "anger")
 WCanger <- WomensCorpus%>%
@@ -154,11 +217,16 @@ WCanger%>%
   xlab(NULL)+
   ylab("No. of Occurrences")+
   ggtitle("Top 15 Angry Words, Womens Corpus")
+# ANSWER: (descending order) words, feeling, ill, money, fear, death,
+# bear, bad, spite, court, angry, difficulty, unhappy, mistress, broken
 
 ## F: WHICH NOVEL IN CORPUS HAS HIGHEST DISGUST
 NRCdisgust <- NRC %>%
   filter(sentiment == "disgust")
-# COME BACK AND FINISH / GET HELP!
+WCdisgust <- WomensCorpus%>%
+  inner_join(NRCdisgust)%>%
+  count(title, sort=TRUE)
+# ANSWER: Middlemarch
 
 ### AFINN LEXICON - QUESTIONS G&H
 AFINN <- lexicon_afinn()
@@ -166,3 +234,10 @@ WomensCorpusAFINN <- WomensCorpus%>%
   inner_join(AFINN)%>%
   group_by(title)%>%
   summarise(sentiment = sum(value))
+# ANSWER:
+# positive: Emma (2543) Pride and Prejudice (2135) Sense and Sensibility (1695),
+#           The Enchanted April (1331) Middlemarch (795)
+# negative: Wuthering Heights (-3105), The Female Quixote (-1270),
+#           Evelina (-1118), Summer (-893) Jane Eyre (-682)
+# NOTE: these answers are only for the women's corpus, they need to be
+# tallied against the other corpus for the final answer.
