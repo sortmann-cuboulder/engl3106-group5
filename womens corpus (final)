@@ -103,7 +103,7 @@ WomensCorpusCount%>%
   coord_flip()+
   xlab(NULL)+
   ylab("Number of Occurrences")+
-  ggtitle("Most Common Words in 'Love Stories by Women' Corpus")
+  ggtitle("Most Common Words, Women's Corpus")
 # ANSWER: (descending order) time, miss, sir, lady, day,
 # eyes, mind, house, love, molly, dear, life, hand, looked,
 # heart, told, people, home, heard, father
@@ -112,25 +112,25 @@ WomensCorpusCount%>%
 BING <- get_sentiments("bing")
 WomensCorpusBING <- WomensCorpus %>%
   inner_join(BING)%>%
-  count(title, word, sentiment) %>%
+  count(title, sentiment) %>%
   spread(sentiment, n) %>%
-  mutate(sentiment = positive - negative)
+  mutate(sentimentratio = negative/(positive+negative)*100)
 
 ## B: 10 MOST NEGATIVE NOVELS
-WomensCorpusBING %>%
-  mutate(title = reorder(title, sentiment))%>%
-  arrange(sentiment)%>%
+WomensCorpusBING%>%
+  mutate(title = reorder(title, sentimentratio))%>%
+  arrange(sentimentratio)%>%
   head(10)%>%
   ggplot()+
-  aes(sentiment, title)+
+  aes(sentimentratio, title)+
   geom_col()+
-  xlab("Net Novel Negativity")+
+  xlab("Percent Negative")+
   ylab(NULL)+
   ggtitle("Most Negative Love Stories by Women")
-# ANSWER: (descending order) wuthering heights, middlemarch, jane eyre,
-# evelina, tenant of wildfell hall, the voyage out, wives and daughters,
-# the black moth, the female quixote, summer
-# NOTE: THIS WILL APPEAR IN REVERSE ORDER ON GRAPH
+# ANSWER: (descending order) ruth hall, memoirs of emma courtney,
+# wives and daughters, the female quixote, the enchanted april,
+# the princess of cleves, sense and sensibility, pride and prejudice, emma,
+# the young visiters
 
 ## C: OVERALL SENTIMENT
 sum(WomensCorpusBING$sentiment)
@@ -151,7 +151,7 @@ WCBpos%>%
   coord_flip()+
   xlab(NULL)+
   ylab("Occurrences")+
-  ggtitle("Top Positive Words, Womens Corpus")
+  ggtitle("Most Used Positive Words, Women's Corpus")
 # ANSWER: (descending order) love, happy, pleasure, glad, pretty, fine, ready,
 # smile, happiness, strong, master, silent, affection, pleased, quiet
 
@@ -174,7 +174,7 @@ WCBneg%>%
   coord_flip()+
   xlab(NULL)+
   ylab("Occurrences")+
-  ggtitle("Top Negative Words, Women's Corpus")
+  ggtitle("Most Used Negative Words, Women's Corpus")
 # ANSWER: (descending order) poor, doubt, fear, afraid, death, cold, bad,
 # trouble, strange, dark, hard, lost, fell, wrong, impossible
 
@@ -196,8 +196,8 @@ WCjoy%>%
   geom_col()+
   coord_flip()+
   xlab(NULL)+
-  ylab("No. of Occurrences")+
-  ggtitle("Top 15 Joyful Words, Womens Corpus")
+  ylab("Occurrences")+
+  ggtitle("Top Joyful Words, Women's Corpus")
 # ANSWER: (descending order) love, mother, found, hope, friend, happy,
 # child, feeling, money, daughter, glad, pretty, true, deal, marriage
 
@@ -215,8 +215,8 @@ WCanger%>%
   geom_col()+
   coord_flip()+
   xlab(NULL)+
-  ylab("No. of Occurrences")+
-  ggtitle("Top 15 Angry Words, Womens Corpus")
+  ylab("Occurrences")+
+  ggtitle("Top Angry Words, Women's Corpus")
 # ANSWER: (descending order) words, feeling, ill, money, fear, death,
 # bear, bad, spite, court, angry, difficulty, unhappy, mistress, broken
 
